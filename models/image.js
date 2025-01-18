@@ -14,23 +14,36 @@ const imageSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+
+
 const mlResponseSchema = new mongoose.Schema(
-    {
-        image: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Image',  // Reference to the Image model
-            required: true,
-        },
-        prediction: { type: String },  // e.g., "Healthy"
-        confidence: { type: Number },  // e.g., 0.95
-        analysis: {
-            skinTone: { type: String },  // e.g., "Fair"
-            spotsDetected: { type: Boolean },  // e.g., true/false
-            wrinklesDetected: { type: Boolean },  // e.g., true/false
-        },
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',  // Reference to the User model
+      required: true, // Ensure each ML response is linked to a user
     },
-    { timestamps: true }
+    response: {
+      type: mongoose.Schema.Types.Mixed, // To store either predicted_class or skin_tone
+      required: true, // Make this field required
+    },
+    imageUrl: {
+      type: String,  // URL of the uploaded image (optional)
+      required: false, // Optional field, if required, you can set it to true
+    },
+    confidence: {
+      type: Number,  // Confidence level for the prediction (optional)
+      required: false,
+    },
+  },
+  { timestamps: true }  // Automatically add createdAt and updatedAt fields
 );
+
+
+
+
+
 
 const MLResponse = mongoose.model('MLResponse', mlResponseSchema);
 
