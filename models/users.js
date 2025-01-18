@@ -11,16 +11,16 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    isVerified: {
-      type: Boolean,
-      default: false,
-    },
-    verificationToken: {
-      type: String, // Field to store the OTP or verification token
-    },
-    verificationTokenExpiresAt: {
-      type: Date, // Field to store the expiration time of the OTP
-    },
+  //   isVerified: {
+  //     type: Boolean,
+  //     default: false,
+  //   },
+  //   verificationToken: {
+  //     type: String, // Field to store the OTP or verification token
+  //   },
+  //   verificationTokenExpiresAt: {
+  //     type: Date, // Field to store the expiration time of the OTP
+  //   },
   },
   { timestamps: true }
 );

@@ -4,7 +4,6 @@ const {
     login,
     logout,
     signup,
-    verifyEmail,
     forgotPassword,
     resetPassword,
     checkAuth,
@@ -13,12 +12,11 @@ const {
 const authenticateToken = require('../middleware/middleware.js');  // Import the authentication middleware
 
 // Define routes
-router.post("/login", login);
-router.post("/logout", logout);
-router.post("/signup", signup);
-router.post("/verify-email", verifyEmail);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password/:token", resetPassword);
+router.post("/login", login);  // Login route
+router.post("/logout", logout);  // Logout route
+router.post("/signup", signup);  // Signup route (no email verification)
+router.post("/forgot-password", forgotPassword);  // Forgot password route
+router.post("/reset-password/:token", resetPassword);  // Reset password route
 router.get("/check-auth", authenticateToken, checkAuth);  // Protect the check-auth route with middleware
 
 module.exports = router;

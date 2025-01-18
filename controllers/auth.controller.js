@@ -1,14 +1,8 @@
 const User = require("../models/users.js");
-const crypto = require("crypto");
 const bcryptjs = require("bcryptjs");
 const generateTokenAndSetCookie = require("../utils/generateTokenAndSetCookie.js");
-const {
-    sendVerificationEmail,
-    sendPasswordResetEmail,
-    sendResetSuccessEmail,
-} = require("../mailtrap/email.js");
 
-// Sign-up function
+// Sign-up function (No email verification)
 const signup = async function (req, res) {
     try {
         const { email, password } = req.body;
@@ -23,14 +17,11 @@ const signup = async function (req, res) {
         }
 
         const hashedPassword = await bcryptjs.hash(password, 10);
-        const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
 
         const user = new User({
             email,
             password: hashedPassword,
-            isVerified: false,
-            verificationToken,
-            verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+            // No need for isVerified, verificationToken, or verificationTokenExpiresAt
         });
 
         await user.save();
@@ -38,53 +29,16 @@ const signup = async function (req, res) {
         // Automatically log in the user by generating a token
         generateTokenAndSetCookie(res, user._id);
 
-        // Send verification email
-        await sendVerificationEmail(user.email, verificationToken);
-
         res.status(201).json({
             success: true,
-            message: "User created successfully. Please verify your email.",
+            message: "User created successfully and logged in.",
         });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
 };
 
-// Email verification function
-const verifyEmail = async function (req, res) {
-    const { code } = req.body; // Verification token
-    try {
-        // Find the user using the verification code and check if it's expired
-        const user = await User.findOne({
-            verificationToken: code,
-            verificationTokenExpiresAt: { $gt: Date.now() },
-        });
-
-        // If the user is not found or the token is expired
-        if (!user) {
-            return res.status(400).json({ success: false, message: "Invalid or expired verification code" });
-        }
-
-        // Mark the user as verified
-        user.isVerified = true;
-        user.verificationToken = undefined; // Clear the verification token
-        user.verificationTokenExpiresAt = undefined; // Clear the verification token expiration
-        await user.save();
-
-        // Automatically generate a token and set it in the response cookie
-        generateTokenAndSetCookie(res, user._id); // Generate the token for the user
-
-        // Send success response
-        res.status(200).json({
-            success: true,
-            message: "Email verified successfully, you are now logged in.",
-        });
-    } catch (error) {
-        res.status(500).json({ success: false, message: "Server error" });
-    }
-};
-
-// Login function
+// Login function (No email verification)
 const login = async function (req, res) {
     const { email, password } = req.body;
     try {
@@ -92,13 +46,13 @@ const login = async function (req, res) {
         if (!user) {
             return res.status(400).json({ success: false, message: "Invalid credentials" });
         }
+
         const isPasswordValid = await bcryptjs.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(400).json({ success: false, message: "Invalid credentials" });
         }
-        if (!user.isVerified) {
-            return res.status(400).json({ success: false, message: "Please verify your email first" });
-        }
+
+        // If password matches, generate the JWT token
         generateTokenAndSetCookie(res, user._id);
 
         res.status(200).json({
@@ -187,7 +141,6 @@ const checkAuth = async function (req, res) {
 
 module.exports = {
     signup,
-    verifyEmail,
     login,
     logout,
     forgotPassword,
