@@ -54,23 +54,30 @@ const signup = async function (req, res) {
 const verifyEmail = async function (req, res) {
     const { code } = req.body; // Verification token
     try {
+        // Find the user using the verification code and check if it's expired
         const user = await User.findOne({
             verificationToken: code,
             verificationTokenExpiresAt: { $gt: Date.now() },
         });
 
+        // If the user is not found or the token is expired
         if (!user) {
             return res.status(400).json({ success: false, message: "Invalid or expired verification code" });
         }
 
+        // Mark the user as verified
         user.isVerified = true;
-        user.verificationToken = undefined;
-        user.verificationTokenExpiresAt = undefined;
+        user.verificationToken = undefined; // Clear the verification token
+        user.verificationTokenExpiresAt = undefined; // Clear the verification token expiration
         await user.save();
 
+        // Automatically generate a token and set it in the response cookie
+        generateTokenAndSetCookie(res, user._id); // Generate the token for the user
+
+        // Send success response
         res.status(200).json({
             success: true,
-            message: "Email verified successfully",
+            message: "Email verified successfully, you are now logged in.",
         });
     } catch (error) {
         res.status(500).json({ success: false, message: "Server error" });
