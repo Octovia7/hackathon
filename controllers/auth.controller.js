@@ -21,24 +21,24 @@ const signup = async function (req, res) {
         const user = new User({
             email,
             password: hashedPassword,
-            // No need for isVerified, verificationToken, or verificationTokenExpiresAt
         });
 
         await user.save();
 
-        // Automatically log in the user by generating a token
-        generateTokenAndSetCookie(res, user._id);
+        // Generate a JWT token
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         res.status(201).json({
             success: true,
             message: "User created successfully and logged in.",
+            token, // Include the token in the response body
         });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
 };
 
-// Login function (No email verification)
+
 const login = async function (req, res) {
     const { email, password } = req.body;
     try {
@@ -52,17 +52,19 @@ const login = async function (req, res) {
             return res.status(400).json({ success: false, message: "Invalid credentials" });
         }
 
-        // If password matches, generate the JWT token
-        generateTokenAndSetCookie(res, user._id);
+        // Generate a JWT token
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         res.status(200).json({
             success: true,
             message: "Logged in successfully",
+            token, // Include the token in the response body
         });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
 };
+
 
 // Forgot password function
 const forgotPassword = async function (req, res) {
